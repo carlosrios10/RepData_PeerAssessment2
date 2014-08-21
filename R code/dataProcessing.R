@@ -13,7 +13,7 @@ dataProcessing<-function(stormData){
     stormData$EVTYPE<-gsub(pattern = ":",replacement = "", x = stormData$EVTYPE,fixed = T)
     stormData$EVTYPE<-gsub(pattern = "-",replacement = "", x = stormData$EVTYPE,fixed = T)
     stormData$EVTYPE<-gsub(pattern = "\\(|\\)",replacement = "", x = stormData$EVTYPE)
-    stormData$EVTYPE[grep(pattern = "^THUNDERSTORM WIND", stormData$EVTYPE)]<-"THUNDERSTORM WIND"
+    stormData$EVTYPE[grep(pattern = "^THUN", stormData$EVTYPE)]<-"THUNDERSTORM WIND"
     stormData$EVTYPE[grep(pattern = "^HURRICANE", stormData$EVTYPE)]<-"HURRICANE"
     stormData$EVTYPE[grep(pattern = "^FLASH FLO", stormData$EVTYPE)]<-"FLASH FLOOD"
     stormData$EVTYPE[grep(pattern = "^FLOOD", stormData$EVTYPE)]<-"FLOOD"
@@ -34,6 +34,26 @@ dataProcessing<-function(stormData){
     stormData$EVTYPE[grep(pattern = "^EXTREME COLD", stormData$EVTYPE)]<-"EXTREME COLD/WIND CHILL"
     stormData$EVTYPE[grep(pattern = "^EXTREME HEAT", stormData$EVTYPE)]<-"EXCESSIVE HEAT"
     stormData$EVTYPE[grep(pattern = "^WILD/FOREST FIRE", stormData$EVTYPE)]<-"WILDFIRE"
+    stormData$EVTYPE[grep(pattern = "^COASTAL FL", stormData$EVTYPE)]<-"COASTAL FLOOD"
+    stormData$EVTYPE[grep(pattern = "^COLD/WIND", stormData$EVTYPE)]<-"COLD/WIND CHILL"
+    stormData$EVTYPE[grep(pattern = "^DRY MI", stormData$EVTYPE)]<-"DRY MICROBURST"
+    stormData$EVTYPE[grep(pattern = "^DUST STORM", stormData$EVTYPE)]<-"DUST STORM"
+    stormData$EVTYPE[grep(pattern = "^EXTREME WIND", stormData$EVTYPE)]<-"EXTREME COLD/WIND CHILL"
+    stormData$EVTYPE[grep(pattern = "^FOREST FIRES", stormData$EVTYPE)]<-"WILDFIRE"
+    stormData$EVTYPE[grep(pattern = "^WINTER STO", stormData$EVTYPE)]<-"WINTER STORM"
+    stormData$EVTYPE[grep(pattern = "^WINTER WEAT", stormData$EVTYPE)]<-"WINTER WEATHER"
+    stormData$EVTYPE[grep(pattern = "^TROPICAL STORM", stormData$EVTYPE)]<-"TROPICAL STORM"
+    stormData$EVTYPE[grep(pattern = "^WATERS", stormData$EVTYPE)]<-"WATERSPOUT"
+    stormData$EVTYPE[grep(pattern = "^GUSTY WI", stormData$EVTYPE)]<-"GUSTY WIND"
+    stormData$EVTYPE[grep(pattern = "^WILD", stormData$EVTYPE)]<-"WILDFIRE"
+    
+    
+    
+    
+    
+    
+    
+    
     
     # Limpieza de la columna PROPDMGEXP
     stormData$PropExp[stormData$PROPDMGEXP=="" | stormData$PROPDMGEXP=="?" |stormData$PROPDMGEXP=="-"|stormData$PROPDMGEXP=="+"|stormData$PROPDMGEXP=="0" ]=10^0
