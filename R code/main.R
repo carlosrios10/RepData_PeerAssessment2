@@ -11,7 +11,7 @@ library("timeDate")
 library("stringdist")
 source("R code/dataProcessing.R")
 ######### load data set ##############
-stormData<-read.csv("data/repdata-data-StormData.csv",nrows=1000)
+stormData<-read.csv("Data/repdata-data-StormData.csv")
 ######### data processing ##############
 stormData<-dataProcessing(stormData)
 ########  Fatalities
@@ -66,5 +66,27 @@ top20CropDmg$EVTYPE<- reorder(top20CropDmg$EVTYPE, top20CropDmg$totalCropDmg,des
 bar <- ggplot(top20CropDmg, aes(y=totalCropDmg)) 
 bar + geom_bar(aes(x=EVTYPE),stat ="identity",binwidth=1 ) +labs(title="20 first Event type and Crop damage",y="total crop damage ",x="")+
     theme(axis.text.x = element_text(hjust=1,angle = 45))
+
+stormDataHE<-ddply(stormData,.(EVTYPE),summarise,
+                   fatalities=sum(FATALITIES),
+                   injuries=sum(INJURIES),
+                   propDmg=sum(PROPDMG*PropExp),
+                   cropDmg=sum(CROPDMG*CropExp)
+                   )
+stormDataHE$totalHarmfulHealth<-(stormDataHE$fatalities+stormDataHE$injuries)
+stormDataHE$totalDmgEconomic<-(stormDataHE$propDmg+stormDataHE$cropDmg)
+stormDataHE<-stormDataHE[!(stormDataHE$totalHarmfulHealth==0&stormDataHE$totalDmgEconomic==0),]
+i<-order(stormDataHE$totalHarmfulHealth,decreasing = T )
+stormDataHE<-stormDataHE[i,]
+
+ggplot(stormDataHE, aes(x=fatalities, y=injuries, label=EVTYPE),guide=FALSE)+
+        geom_point(aes(colour  = cropDmg,size=propDmg))+scale_size_area() +geom_text(size=4)+ theme_bw()
+
+crime <-read.csv("http://datasets.flowingdata.com/crimeRatesByState2005.tsv", header=TRUE, sep="\t")
+ggplot(crime, aes(x=murder, y=burglary, size=population, label=state),guide=FALSE)+
+        geom_point(colour="white", fill="red", shape=21)+ scale_size_area()+
+        scale_x_continuous(name="Murders per 1,000 population", limits=c(0,12))+
+        scale_y_continuous(name="Burglaries per 1,000 population", limits=c(0,1250))+
+        geom_text(size=4)+ theme_bw()
 
 knit("PA2_template.Rmd")
