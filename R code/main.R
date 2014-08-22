@@ -79,6 +79,8 @@ stormDataHE<-stormDataHE[!(stormDataHE$totalHarmfulHealth==0&stormDataHE$totalDm
 i<-order(stormDataHE$totalHarmfulHealth,decreasing = T )
 stormDataHE<-stormDataHE[i,]
 
+
+multiplot(p1, p2, p3, p4, cols=2)
 stormDataHE2<-stormDataHE[1:50,]
 str(stormDataHE2)
 factor(stormDataHE2$id)
