@@ -1,9 +1,7 @@
 ###################################################################################################
-# En esta funcion limpio las columnas que voy a utilizar para el analisis
-# EVTYPE,PROPDMGEXP, CROPDMGEXP
-# 
+## EVTYPE,PROPDMGEXP, CROPDMGEXP
 dataProcessing<-function(stormData){
-    #Limpieza de la columna EVTYPE
+    #Cleaning the EVTYPE variable.
     stormData$EVTYPE<-toupper(stormData$EVTYPE)
     stormData$EVTYPE<-str_trim(stormData$EVTYPE, side = "both")
     stormData$EVTYPE<-gsub(pattern = "TSTM",replacement ="THUNDERSTORM",x =stormData$EVTYPE ) 
@@ -46,16 +44,8 @@ dataProcessing<-function(stormData){
     stormData$EVTYPE[grep(pattern = "^WATERS", stormData$EVTYPE)]<-"WATERSPOUT"
     stormData$EVTYPE[grep(pattern = "^GUSTY WI", stormData$EVTYPE)]<-"GUSTY WIND"
     stormData$EVTYPE[grep(pattern = "^WILD", stormData$EVTYPE)]<-"WILDFIRE"
-    
-    
-    
-    
-    
-    
-    
-    
-    
-    # Limpieza de la columna PROPDMGEXP
+ 
+    #Creation the new PropExp variable.
     stormData$PropExp[stormData$PROPDMGEXP=="" | stormData$PROPDMGEXP=="?" |stormData$PROPDMGEXP=="-"|stormData$PROPDMGEXP=="+"|stormData$PROPDMGEXP=="0" ]=10^0
     stormData$PropExp[stormData$PROPDMGEXP=="1" ]=10^1
     stormData$PropExp[stormData$PROPDMGEXP=="2" |stormData$PROPDMGEXP=="h"|stormData$PROPDMGEXP=="H"]=10^2
@@ -67,15 +57,15 @@ dataProcessing<-function(stormData){
     stormData$PropExp[stormData$PROPDMGEXP=="8" ]=10^8
     stormData$PropExp[stormData$PROPDMGEXP=="B" ]=10^9
     
-    #Limpieza de la columna CROPDMGEXP
+    #Creation the new CropExp variable.
     stormData$CropExp[stormData$CROPDMGEXP=="" | stormData$CROPDMGEXP=="?" |stormData$CROPDMGEXP=="0" ]=10^0
     stormData$CropExp[stormData$CROPDMGEXP=="2"]=10^2
     stormData$CropExp[stormData$CROPDMGEXP=="k"|stormData$CROPDMGEXP=="K" ]=10^3
     stormData$CropExp[stormData$CROPDMGEXP=="m"|stormData$CROPDMGEXP=="M" ]=10^6
     stormData$CropExp[stormData$CROPDMGEXP=="B" ]=10^9
     
-    #Creo la columna YEAR
+    
     stormData$YEAR<-year(mdy_hms(as.character(stormData$BGN_DATE)))
-    return (stormData)
+    return (stormData[,c("EVTYPE","FATALITIES","INJURIES","PROPDMG","PropExp","CROPDMG","CropExp")])
     
 }

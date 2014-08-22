@@ -1,6 +1,7 @@
 ##################################################
 ##### In this file 
 ##### load libraries and functions ##############
+rm(list = ls())
 library("knitr")
 library("plyr")
 library("ggplot2")
@@ -12,8 +13,14 @@ library("stringdist")
 source("R code/dataProcessing.R")
 ######### load data set ##############
 stormDataRaw<-read.csv("Data/repdata-data-StormData.csv")
+
+dim(stormDataRaw)
+head(stormDataRaw)
+str(stormDataRaw)
+
 ######### data processing ##############
 stormData<-dataProcessing(stormDataRaw)
+head(stormData[,c("EVTYPE","FATALITIES","INJURIES","PROPDMG","PropExp","CROPDMG","CropExp")])
 ########  Fatalities
 totalFatalities<-ddply(stormData,.(EVTYPE),summarise,totalFatalities=sum(FATALITIES))
 totalFatalities<-totalFatalities[!(totalFatalities$totalFatalities==0),]
@@ -76,8 +83,25 @@ stormDataHE<-ddply(stormData,.(EVTYPE),summarise,
 stormDataHE$totalHarmfulHealth<-(stormDataHE$fatalities+stormDataHE$injuries)
 stormDataHE$totalDmgEconomic<-(stormDataHE$propDmg+stormDataHE$cropDmg)
 stormDataHE<-stormDataHE[!(stormDataHE$totalHarmfulHealth==0&stormDataHE$totalDmgEconomic==0),]
+########## total damage to helth population
 i<-order(stormDataHE$totalHarmfulHealth,decreasing = T )
 stormDataHE<-stormDataHE[i,]
+top20<-stormDataHE[1:20,]
+top20$EVTYPE<- reorder(top20$EVTYPE, top20$totalHarmfulHealth,desc)
+bar <- ggplot(top20, aes(y=totalHarmfulHealth)) 
+bar + geom_bar(aes(x=EVTYPE),stat ="identity",binwidth=1 ) +labs(title="First twenty event and total damage to population health",y="total damage to population health",x="")+
+    theme(axis.text.x = element_text(hjust=1,angle = 45))
+
+########## total damage to economy
+i<-order(stormDataHE$totalDmgEconomic,decreasing = T )
+stormDataHE<-stormDataHE[i,]
+top20<-stormDataHE[1:20,]
+top20$EVTYPE<- reorder(top20$EVTYPE, top20$totalDmgEconomic,desc)
+bar <- ggplot(top20, aes(y=totalDmgEconomic)) 
+bar + geom_bar(aes(x=EVTYPE),stat ="identity",binwidth=1 ) +labs(title="First twenty event and total damage to economy",y="total damage to economy",x="")+
+    theme(axis.text.x = element_text(hjust=1,angle = 45))
+
+
 
 
 multiplot(p1, p2, p3, p4, cols=2)
