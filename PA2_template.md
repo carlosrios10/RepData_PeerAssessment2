@@ -1,5 +1,5 @@
 ---
-output: pdf_document
+output: html_document
 ---
 # The weather events that are most harmful with respect to population health and have the greatest economic consequences in United States.
 

@@ -132,14 +132,7 @@ ggplot(melt(selectStormData[c("EVTYPE","perFatalities","perInjuries","perPropDmg
         scale_x_discrete(breaks=c("perFatalities", "perInjuries", "perPropDmg","perCropDmg"), 
                          labels=c("fatalities", "injuries", "property-damage","crop-damage"))+
         theme(axis.text.x = element_text(hjust=1,angle = 45))
-
-knit("PA2_template.Rmd")
-require(markdown)
-markdownToHTML('PA2_template.md', 'PA2_template.html', options=c("use_xhml"))
-pandoc('PA2_template.Rmd', format='latex')
-knit2pdf('PA2_template.Rmd')
-Sys.which("pdflatex")
-Sys.which('texi2dvi')
-
-bar <- ggplot(cars, aes(y=speed,x=dist))
-bar + geom_point()
+##########
+sessionInfo()
+ 
+grid.arrange
