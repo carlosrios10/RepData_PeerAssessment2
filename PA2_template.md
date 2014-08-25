@@ -1,15 +1,14 @@
 ---
-title: "PA2_template"
-author: "carlos rios"
-date: "Wednesday, August 20, 2014"
-output: html_document
+output: pdf_document
 ---
+# The weather events that are most harmful with respect to population health and have the greatest economic consequences in United States.
+
 ## Synopsis
 
 Storms and other severe weather events can cause both public health and economic problems for communities and municipalities. Many severe events can result in fatalities, injuries, and property damage, and preventing such outcomes to the extent possible is a key concern.
-In this work we aim to show which types of events are most harmful with respect to population health and which types of events have the greatest economic consequences in United States. To make this work we obteined data from the U.S. National Oceanic and Atmospheric Administration's (NOAA) storm database. This database tracks characteristics of major storms and weather events in the United States, including when and where they occur, as well as estimates of any fatalities, injuries, and property damage.We specifically work with data for the years from 1950 to 2011. We found that,the event type "tornado" is the most harmful with respect to population helt and also have great economic consequenses but the event type that have the greatest economic consequences is "Flood".
+In this work we aim to show which types of events are most harmful with respect to population health and which types of events have the greatest economic consequences in United States. To make this work we obteined data from the U.S. National Oceanic and Atmospheric Administration's (NOAA) storm database. This database tracks characteristics of major storms and weather events in the United States, including when and where they occur, as well as estimates of any fatalities, injuries, and property damage. We specifically work with data for the years from 1950 to 2011. We found that, the event type "tornado" is the most harmful with respect to population helt and also have great economic consequenses but the event type that have the greatest economic consequences is "Flood".
 
-### Libraries
+## Libraries
 
 To carry out the data analyses we used the following libraries.
 
@@ -19,15 +18,30 @@ library("plyr")
 library("ggplot2")
 library("lubridate")
 library("stringr")
+library("reshape2")
 source("R code/dataProcessing.R")
+source("R code/loadRawData.R")
 ```
-### Loading and Processing the Raw Data
+## Loading and Processing the Raw Data
 
-We first read the data from the raw csv file included in the zip archive. The data come in the form of a comma-separate
-d-value.
+We first read the data from the raw csv file included in the zip archive. The data come in the form of a comma-separated-value.
 
 ```r
-stormDataRaw<-read.csv("Data/repdata-data-StormData.csv")
+loadRawData<-function(){
+        file_url <- "https://d396qusza40orc.cloudfront.net/repdata%2Fdata%2FStormData.csv.bz2"
+        zip_name <- "Data/repdata-data-StormData.csv.bz2"
+        # Download zip file if not found
+        if(file.exists(zip_name) == FALSE) {
+                download.file(file_url,zip_name)  
+        }
+        stormDf <-read.csv(bzfile(zip_name))
+        return(stormDf)
+}
+```
+
+
+```r
+stormDataRaw<-loadRawData()
 ```
 
 After reading we check the dimension of data set, the internal structure of data set and the first rows in this data set.
@@ -82,7 +96,7 @@ str(stormDataRaw)
 ##  $ LONGITUDE : num  8812 8755 8742 8626 8642 ...
 ##  $ LATITUDE_E: num  3051 0 0 0 0 ...
 ##  $ LONGITUDE_: num  8806 0 0 0 0 ...
-##  $ REMARKS   : Factor w/ 436774 levels "","-2 at Deer Park\n",..: 1 1 1 1 1 1 1 1 1 1 ...
+##  $ REMARKS   : Factor w/ 436781 levels "","-2 at Deer Park\n",..: 1 1 1 1 1 1 1 1 1 1 ...
 ##  $ REFNUM    : num  1 2 3 4 5 6 7 8 9 10 ...
 ```
 
@@ -129,7 +143,7 @@ head(stormDataRaw)
 ## 6     3450      8748          0          0              6
 ```
 
-To achieve our goal we select only six variables that are describe below. This information was obteind from National Weather Service Storm Data Documentation and National Climatic Data Center Storm Events FAQ.
+To achieve our goal we select only six variables that are describe below. This information was obteind from [National Weather Service Storm Data Documentation](https://d396qusza40orc.cloudfront.net/repdata%2Fpeer2_doc%2Fpd01016005curr.pdf) and National Climatic Data Center Storm Events [FAQ](https://d396qusza40orc.cloudfront.net/repdata%2Fpeer2_doc%2FNCDC%20Storm%20Events-FAQ%20Page.pdf).
 
 | Varible   |Meaning| 
 |---        |---    |
@@ -237,12 +251,18 @@ stormDataHE<-ddply(stormData,.(EVTYPE),summarise,
 stormDataHE$totalHarmfulHealth<-(stormDataHE$fatalities+stormDataHE$injuries)
 stormDataHE$totalDmgEconomic<-(stormDataHE$propDmg+stormDataHE$cropDmg)
 stormDataHE<-stormDataHE[!(stormDataHE$totalHarmfulHealth==0&stormDataHE$totalDmgEconomic==0),]
+stormDataHE$perFatalities<-prop.table(stormDataHE$fatalities)
+stormDataHE$perInjuries<-prop.table(stormDataHE$injuries)
+stormDataHE$perPropDmg<-prop.table(stormDataHE$propDmg)
+stormDataHE$perCropDmg<-prop.table(stormDataHE$cropDmg)
 ```
 
-##Results 
+
+
+## Results 
 In this section we show the results that we found.
 
-In order to show which types of events are most harmful with respect to population health, we can make a bar plot with the  first twenty event that are more harmful. 
+In order to show which types of events are most harmful with respect to population health, we can make a bar plot with the  first twenty events that are more harmful. 
 
 
 ```r
@@ -250,16 +270,20 @@ i<-order(stormDataHE$totalHarmfulHealth,decreasing = T )
 stormDataHE<-stormDataHE[i,]
 top20<-stormDataHE[1:20,]
 top20$EVTYPE<- reorder(top20$EVTYPE, top20$totalHarmfulHealth,desc)
-bar <- ggplot(top20, aes(y=totalHarmfulHealth)) 
-bar + geom_bar(aes(x=EVTYPE),stat ="identity",binwidth=1 ) +labs(title="First twenty event and total damage to population health",y="total damage to population health",x="")+
-    theme(axis.text.x = element_text(hjust=1,angle = 45))
+top20 <- melt(top20[,1:3], id.vars = c("EVTYPE"))
+bar <- ggplot(top20, aes(y=value,fill=variable)) 
+bar + geom_bar(aes(x=EVTYPE),position="dodge",stat ="identity",binwidth=1 ) + 
+        scale_y_continuous(breaks = seq(from=0,to=10^5,by=10^4))+
+        labs(title="First twenty events and total damage to population health",y="number of victims",x="")+
+        theme(axis.text.x = element_text(hjust=1,angle = 45))+
+        theme(legend.title=element_blank())
 ```
 
-![plot of chunk unnamed-chunk-9](figure/unnamed-chunk-9.png) 
+<img src="figure/unnamed-chunk-10.png" title="plot of chunk unnamed-chunk-10" alt="plot of chunk unnamed-chunk-10" style="display: block; margin: auto;" />
 
 The above figure show us that the "TORNADO" is the most harmful with respect to population health, the difference of damage with respect others event is too big.
 
-Then in order to show which types of events have the greatest economic consequences in United States, we can make a bar plot with the  first twenty event that are more harmful. 
+Then in order to show which types of events have the greatest economic consequences in United States, we can make a bar plot with the  first twenty events that are more harmful. 
 
 
 ```r
@@ -267,11 +291,41 @@ i<-order(stormDataHE$totalDmgEconomic,decreasing = T )
 stormDataHE<-stormDataHE[i,]
 top20<-stormDataHE[1:20,]
 top20$EVTYPE<- reorder(top20$EVTYPE, top20$totalDmgEconomic,desc)
-bar <- ggplot(top20, aes(y=totalDmgEconomic)) 
-bar + geom_bar(aes(x=EVTYPE),stat ="identity",binwidth=1 ) +labs(title="First twenty event and total damage to economy",y="total damage to economy",x="")+
-    theme(axis.text.x = element_text(hjust=1,angle = 45))
+top20 <- melt(top20[c("EVTYPE","propDmg","cropDmg")], id.vars = c("EVTYPE"))
+bar <- ggplot(top20, aes(y=value,fill=variable)) 
+bar + geom_bar(aes(x=EVTYPE),position="dodge",stat ="identity",binwidth=1 ) +
+        labs(title="First twenty events and total damage to economy",y="dollar amounts",x="")+
+        theme(axis.text.x = element_text(hjust=1,angle = 45))+
+        theme(legend.title=element_blank())
 ```
 
-![plot of chunk unnamed-chunk-10](figure/unnamed-chunk-10.png) 
+<img src="figure/unnamed-chunk-11.png" title="plot of chunk unnamed-chunk-11" alt="plot of chunk unnamed-chunk-11" style="display: block; margin: auto;" />
 
-The above figure show us that the "FLOOD" has the greatest economic consequences, follow to "HURRICANE" and "TORNADO", is important highlight that the "TORNADO" produce big damage in the population helth and the economy.
+The above figure show us that the "FLOOD" has the greatest economic consequences, follow to "HURRICANE" and "TORNADO", is important highlight that the "TORNADO" produces big damage in the population health and in the economy.
+
+In order to show the relationship between damage to economy and damage to population health for each event, we selected those events that have big consecuences in economy and in population health.
+
+The next figure show us that the "TORNADO" event makes damage in population health and also produces economic consecuences. Also We can note that the "FLOOD" event produces more damage in properties than on crop.
+
+
+```r
+i<-order(stormDataHE$totalDmgEconomic,decreasing = T )
+stormDataHE<-stormDataHE[i,]
+TFirstEventsDmgEconomic<-stormDataHE[1:20,1]
+i<-order(stormDataHE$totalHarmfulHealth,decreasing = T )
+stormDataHE<-stormDataHE[i,]
+TFirstEventsHealth<-stormDataHE[1:20,1]
+unionEvents<-union(TFirstEventsDmgEconomic,TFirstEventsHealth)
+selectStormData<-stormDataHE[stormDataHE$EVTYPE %in% unionEvents,]
+ggplot(melt(selectStormData[c("EVTYPE","perFatalities","perInjuries","perPropDmg","perCropDmg")], id.vars = c("EVTYPE")), aes(x=variable, y=EVTYPE)) +
+        geom_tile(aes(fill=value))+
+        labs(title="Relationship between damage to economy and \n damage to population health",y="",x="")+
+        scale_fill_gradient2( name="%Damage",low = "green", high = "red", breaks=c(0,0.65),labels=c("Minimum","Maximum")) +
+        scale_x_discrete(breaks=c("perFatalities", "perInjuries", "perPropDmg","perCropDmg"), 
+                         labels=c("fatalities", "injuries", "property-damage","crop-damage"))+
+        theme(axis.text.x = element_text(hjust=1,angle = 45))
+```
+
+<img src="figure/unnamed-chunk-12.png" title="plot of chunk unnamed-chunk-12" alt="plot of chunk unnamed-chunk-12" style="display: block; margin: auto;" />
+
+
